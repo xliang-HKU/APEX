@@ -493,6 +493,69 @@ def make_lammps_FiniteTlatt(conf, type_map, interaction, param):
     ret += "print \"Final Length (box_x box_y box_z) = ${lx} ${ly} ${lz}\"\n"
     return ret
 
+
+def make_lammps_FiniteTela(conf, type_map, interaction, param):
+    type_map_list = element_list(type_map)
+    dump_step = 100
+
+    ret = ""
+    ret += "include  variable_FiniteTela.in\n"
+    ret += "clear\n"
+    ret += "units  metal\n"
+    ret += "dimension 3\n"
+    ret += "boundary p p p\n"
+    ret += "atom_style atomic\n"
+    ret += "box     tilt large\n"
+    ret += "read_data   %s\n" % conf
+    ret += "replicate   ${nx} ${ny} ${nz}\n"
+    for ii in range(len(type_map)):
+        ret += "mass            %d %.3f\n" % (ii + 1, Element(type_map_list[ii]).mass)
+    ret += "neigh_modify    every 1 delay 0 check no\n"
+    ret += interaction(param)
+    ret += "compute         mype all pe\n"
+    ret += "timestep        ${timestep}\n"
+    ret += "thermo          100\n"
+    ret += (
+        "thermo_style    custom step pe pxx pyy pzz pxy pxz pyz lx ly lz xy xz yz vol c_mype\n"
+    )
+    ret += "velocity all create ${temperature} ${seed} mom yes rot yes dist gaussian\n"
+    ret += (
+        "fix 1 all npt temp ${temperature} ${temperature} ${tdamp} aniso 0.0 0.0 ${pdamp}\n"
+    )
+    ret += "run ${equi_step}\n"
+    ret += "unfix 1\n"
+    ret += "reset_timestep 0\n"
+    ret += "include deform_FiniteTela.in\n"
+    ret += "fix 2 all nvt temp ${temperature} ${temperature} ${tdamp}\n"
+    ret += "run ${deform_equi_step}\n"
+    ret += (
+        "fix 3 all ave/time ${N_every} ${N_repeat} ${N_freq} pxx pyy pzz pxy pxz pyz "
+        "ave one file average_stress.txt\n"
+    )
+    ret += (
+        f"dump            1 all custom {dump_step} dump.relax id type xs ys zs fx fy fz\n"
+    )
+    ret += "run ${ave_step}\n"
+    ret += "variable        N equal count(all)\n"
+    ret += "variable        V equal vol\n"
+    ret += "variable        E equal \"c_mype\"\n"
+    ret += "variable        Pxx equal pxx\n"
+    ret += "variable        Pyy equal pyy\n"
+    ret += "variable        Pzz equal pzz\n"
+    ret += "variable        Pxy equal pxy\n"
+    ret += "variable        Pxz equal pxz\n"
+    ret += "variable        Pyz equal pyz\n"
+    ret += "variable        Epa equal ${E}/${N}\n"
+    ret += "variable        Vpa equal ${V}/${N}\n"
+    ret += "print \"All done\"\n"
+    ret += "print \"Total number of atoms = ${N}\"\n"
+    ret += "print \"Final energy per atoms = ${Epa}\"\n"
+    ret += "print \"Final volume per atoms = ${Vpa}\"\n"
+    ret += (
+        "print \"Final Stress (xx yy zz xy xz yz) = ${Pxx} ${Pyy} ${Pzz} ${Pxy} ${Pxz} ${Pyz}\"\n"
+    )
+    return ret
+
 def make_lammps_press_relax(
     conf,
     type_map,

@@ -323,6 +323,106 @@ class FiniteTlattReport(PropertyReport):
         )
         return build_table(df), df
 
+
+class FiniteTelaReport(PropertyReport):
+    """Report elastic constants and moduli as a function of temperature."""
+
+    @staticmethod
+    def _sorted_rows(res_data):
+        sorted_vals = sorted(res_data.values(), key=lambda v: float(v["temperature"]))
+        temps = [float(v["temperature"]) for v in sorted_vals]
+        c11 = [float(v["elastic_tensor"][0][0]) for v in sorted_vals]
+        c12 = [float(v["elastic_tensor"][0][1]) for v in sorted_vals]
+        c13 = [float(v["elastic_tensor"][0][2]) for v in sorted_vals]
+        c44 = [float(v["elastic_tensor"][3][3]) for v in sorted_vals]
+        c55 = [float(v["elastic_tensor"][4][4]) for v in sorted_vals]
+        c66 = [float(v["elastic_tensor"][5][5]) for v in sorted_vals]
+        bulk = [float(v["B"]) for v in sorted_vals]
+        shear = [float(v["G"]) for v in sorted_vals]
+        young = [float(v["E"]) for v in sorted_vals]
+        poisson = [float(v["u"]) for v in sorted_vals]
+        return temps, c11, c12, c13, c44, c55, c66, bulk, shear, young, poisson
+
+    @staticmethod
+    def plotly_graph(res_data: dict, name: str, **kwargs):
+        temps, c11, c12, c13, c44, c55, c66, bulk, shear, young, poisson = (
+            FiniteTelaReport._sorted_rows(res_data)
+        )
+
+        traces = [
+            go.Scatter(x=temps, y=c11, mode="lines+markers", name="C11"),
+            go.Scatter(x=temps, y=c12, mode="lines+markers", name="C12"),
+            go.Scatter(x=temps, y=c13, mode="lines+markers", name="C13"),
+            go.Scatter(x=temps, y=c44, mode="lines+markers", name="C44"),
+            go.Scatter(x=temps, y=c55, mode="lines+markers", name="C55"),
+            go.Scatter(x=temps, y=c66, mode="lines+markers", name="C66"),
+            go.Scatter(x=temps, y=bulk, mode="lines+markers", name="B"),
+            go.Scatter(x=temps, y=shear, mode="lines+markers", name="G"),
+            go.Scatter(x=temps, y=young, mode="lines+markers", name="E"),
+            go.Scatter(x=temps, y=poisson, mode="lines+markers", name="u"),
+        ]
+
+        layout = go.Layout(
+            title="Finite Temperature Elastic Constants",
+            xaxis=dict(title="Temperature (K)"),
+            yaxis=dict(title="Elastic constants / modulus (GPa or dimensionless u)"),
+            showlegend=True,
+        )
+        return traces, layout
+
+    @staticmethod
+    def dash_table(res_data: dict, decimal: int = 3, **kwargs) -> dash_table.DataTable:
+        sorted_vals = sorted(res_data.values(), key=lambda v: float(v["temperature"]))
+
+        df = pd.DataFrame(
+            {
+                "Temperature (K)": round_format(
+                    [float(v["temperature"]) for v in sorted_vals], decimal
+                ),
+                "C11 (GPa)": round_format(
+                    [float(v["elastic_tensor"][0][0]) for v in sorted_vals], decimal
+                ),
+                "C12 (GPa)": round_format(
+                    [float(v["elastic_tensor"][0][1]) for v in sorted_vals], decimal
+                ),
+                "C13 (GPa)": round_format(
+                    [float(v["elastic_tensor"][0][2]) for v in sorted_vals], decimal
+                ),
+                "C22 (GPa)": round_format(
+                    [float(v["elastic_tensor"][1][1]) for v in sorted_vals], decimal
+                ),
+                "C23 (GPa)": round_format(
+                    [float(v["elastic_tensor"][1][2]) for v in sorted_vals], decimal
+                ),
+                "C33 (GPa)": round_format(
+                    [float(v["elastic_tensor"][2][2]) for v in sorted_vals], decimal
+                ),
+                "C44 (GPa)": round_format(
+                    [float(v["elastic_tensor"][3][3]) for v in sorted_vals], decimal
+                ),
+                "C55 (GPa)": round_format(
+                    [float(v["elastic_tensor"][4][4]) for v in sorted_vals], decimal
+                ),
+                "C66 (GPa)": round_format(
+                    [float(v["elastic_tensor"][5][5]) for v in sorted_vals], decimal
+                ),
+                "B (GPa)": round_format(
+                    [float(v["B"]) for v in sorted_vals], decimal
+                ),
+                "G (GPa)": round_format(
+                    [float(v["G"]) for v in sorted_vals], decimal
+                ),
+                "E (GPa)": round_format(
+                    [float(v["E"]) for v in sorted_vals], decimal
+                ),
+                "u": round_format(
+                    [float(v["u"]) for v in sorted_vals], decimal
+                ),
+            }
+        )
+        return build_table(df), df
+
+
 class ElasticReport(PropertyReport):
     @staticmethod
     def plotly_graph(res_data: dict, name: str, **kwargs):
