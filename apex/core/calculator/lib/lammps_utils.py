@@ -528,8 +528,15 @@ def make_lammps_FiniteTela(conf, type_map, interaction, param):
     ret += "include deform_FiniteTela.in\n"
     ret += "fix 2 all nvt temp ${temperature} ${temperature} ${tdamp}\n"
     ret += "run ${deform_equi_step}\n"
+    ret += "variable        Sxx equal pxx\n"
+    ret += "variable        Syy equal pyy\n"
+    ret += "variable        Szz equal pzz\n"
+    ret += "variable        Sxy equal pxy\n"
+    ret += "variable        Sxz equal pxz\n"
+    ret += "variable        Syz equal pyz\n"
     ret += (
-        "fix 3 all ave/time ${N_every} ${N_repeat} ${N_freq} pxx pyy pzz pxy pxz pyz "
+        "fix 3 all ave/time ${N_every} ${N_repeat} ${N_freq} "
+        "v_Sxx v_Syy v_Szz v_Sxy v_Sxz v_Syz "
         "ave one file average_stress.txt\n"
     )
     ret += (

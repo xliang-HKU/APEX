@@ -155,6 +155,8 @@ class FiniteTela(Property):
 
             for task_dir, meta in grouped_tasks[temp_key]:
                 avg_stress = self._average_stress(task_dir)
+                # average_stress.txt stores LAMMPS pressure components; flip the
+                # sign here so the fit sees a Cauchy stress tensor instead.
                 stress = Stress(avg_stress)
                 stress *= -1000
 
@@ -218,6 +220,8 @@ class FiniteTela(Property):
         task_list: List[str] = []
         task_idx = 0
         for temp in self.cal_setting["temperature"]:
+            # Each temperature gets one unstrained reference state plus
+            # +/- perturbations for every requested Voigt component.
             task_dir = os.path.join(path_to_work, f"task.{task_idx:06d}")
             os.makedirs(task_dir, exist_ok=True)
             self._write_task(task_dir, structure, ptypes, temp, None, 0.0)
@@ -344,6 +348,8 @@ class FiniteTela(Property):
         if count == 0:
             raise RuntimeError(f"No averaged stress data found in {stress_file}")
 
+        # Average the sampling windows into one symmetric tensor before the
+        # later fitting/export steps apply their own sign and unit handling.
         for ii in range(3):
             for jj in range(3):
                 stress_sum[ii][jj] /= count * 1000.0
@@ -358,6 +364,8 @@ class FiniteTela(Property):
             "equilibrium_stress": [],
         }
 
+        # The fitted tensor is carried internally in bar, so divide by 1e4 when
+        # exporting a compact result.json in GPa.
         tensor_gpa = []
         for ii in range(6):
             row = []
@@ -455,6 +463,8 @@ class FiniteTela(Property):
                 + f"change_box all z scale {1.0 + strain_value:.8f} remap units box\n"
             )
         if strain_component == 3:
+            # Shear components are applied through box tilts using the current
+            # box length so the engineering strain matches the requested value.
             return (
                 header
                 + "variable tilt_delta equal ${strain}*lz\n"

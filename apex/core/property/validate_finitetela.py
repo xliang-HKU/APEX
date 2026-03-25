@@ -223,6 +223,8 @@ def _build_manual_tensor(records: List[TaskRecord]) -> Tuple[List[List[float]], 
         column_plus = []
         column_minus = []
         for idx in range(6):
+            # Rebuild one tensor column from the raw +/- stress response, and
+            # keep the one-sided estimates to diagnose finite-temperature noise.
             central = (pos.stress_voigt_gpa[idx] - neg.stress_voigt_gpa[idx]) / (2.0 * strain)
             plus = (pos.stress_voigt_gpa[idx] - reference.stress_voigt_gpa[idx]) / strain
             minus = (reference.stress_voigt_gpa[idx] - neg.stress_voigt_gpa[idx]) / strain
@@ -303,6 +305,8 @@ def validate_workdir(args) -> int:
             print()
             continue
 
+        # Compare the post-processed tensor against a direct finite-difference
+        # reconstruction from average_stress.txt.
         fit_tensor = result_entry["elastic_tensor"]
         diff_values = _matrix_diffs(fit_tensor, manual_tensor)
         diff_max, diff_rms = _vector_stats(diff_values)
@@ -427,6 +431,8 @@ def _indent_block(text: str, prefix: str) -> str:
 def _relative_column_gap(a: List[float], b: List[float], floor: float = 1e-8) -> float:
     ratios = []
     for va, vb in zip(a, b):
+        # Normalize by the larger one-sided response so near-zero components do
+        # not dominate the relative asymmetry metric.
         denom = max(max(abs(va), abs(vb)), floor)
         ratios.append(abs(va - vb) / denom)
     return max(ratios) if ratios else 0.0
