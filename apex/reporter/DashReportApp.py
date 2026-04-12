@@ -39,6 +39,8 @@ def return_prop_class(prop_type: str):
         return DecohesiveReport
     elif prop_type == 'finitetlatt':
         return FiniteTlattReport
+    elif prop_type == 'finitebulk':
+        return FiniteBulkReport
     elif prop_type == 'finitetela':
         return FiniteTelaReport
 

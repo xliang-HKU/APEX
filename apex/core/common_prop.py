@@ -13,6 +13,7 @@ from apex.core.property.Surface import Surface
 from apex.core.property.Vacancy import Vacancy
 from apex.core.property.Phonon import Phonon
 from apex.core.property.Decohesive import Decohesive
+from apex.core.property.FiniteBulk import FiniteBulk
 from apex.core.property.FiniteTlatt import FiniteTlatt
 from apex.core.property.FiniteTela import FiniteTela
 from apex.core.lib.utils import create_path
@@ -49,6 +50,8 @@ def make_property_instance(parameters, inter_param):
         return Decohesive(parameters, inter_param)
     elif prop_type == "finitetlatt":
         return FiniteTlatt(parameters, inter_param)
+    elif prop_type == "finitebulk":
+        return FiniteBulk(parameters, inter_param)
     elif prop_type == "finitetela":
         return FiniteTela(parameters, inter_param)
     else:

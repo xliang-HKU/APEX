@@ -152,6 +152,8 @@ class Lammps(Task):
         bp = 0
 
         self.set_model_param()
+        finite_temp_param = self.model_param.copy()
+        finite_temp_param["cal_setting"] = cal_setting
 
         # deal with user input in.lammps for relaxation
         if os.path.isfile(self.in_lammps) and task_type == "relaxation":
@@ -287,11 +289,15 @@ class Lammps(Task):
                 )
             elif cal_type == "npt+ave/time":
                 fc = lammps_utils.make_lammps_FiniteTlatt(
-                    "conf.lmp", self.type_map, self.inter_func, self.model_param
+                    "conf.lmp", self.type_map, self.inter_func, finite_temp_param
+                )
+            elif cal_type == "npt+bulkdeform+nvt+ave/time":
+                fc = lammps_utils.make_lammps_FiniteBulk(
+                    "conf.lmp", self.type_map, self.inter_func, finite_temp_param
                 )
             elif cal_type == "npt+deform+nvt+ave/time":
                 fc = lammps_utils.make_lammps_FiniteTela(
-                    "conf.lmp", self.type_map, self.inter_func, self.model_param
+                    "conf.lmp", self.type_map, self.inter_func, finite_temp_param
                 )
 
             else:
@@ -541,6 +547,14 @@ class Lammps(Task):
             return ["conf.lmp", "in.lammps"] + list(map(os.path.basename, self.model))
         elif property_type == "finitetlatt":
             return ["in.lammps", "variable_FiniteTlatt.in", os.path.basename(self.model)]
+        elif property_type == "finitebulk":
+            return [
+                "conf.lmp",
+                "in.lammps",
+                "variable_FiniteBulk.in",
+                "deform_FiniteBulk.in",
+                os.path.basename(self.model),
+            ]
         elif property_type == "finitetela":
             return [
                 "conf.lmp",
@@ -558,6 +572,13 @@ class Lammps(Task):
                 return ["in.lammps"] + list(map(os.path.basename, self.model))
             elif property_type == "finitetlatt":
                 return ["in.lammps", "variable_FiniteTlatt.in", os.path.basename(self.model)]
+            elif property_type == "finitebulk":
+                return [
+                    "in.lammps",
+                    "variable_FiniteBulk.in",
+                    "deform_FiniteBulk.in",
+                    os.path.basename(self.model),
+                ]
             elif property_type == "finitetela":
                 return [
                     "in.lammps",
@@ -578,6 +599,8 @@ class Lammps(Task):
             return ["outlog", "FORCE_CONSTANTS"]
         elif property_type == "finitetlatt":
             return ["log.lammps", "outlog", "dump.relax", "average_box.txt"]
+        elif property_type == "finitebulk":
+            return ["log.lammps", "outlog", "dump.relax", "average_stress.txt"]
         elif property_type == "finitetela":
             return ["log.lammps", "outlog", "dump.relax", "average_stress.txt"]
         else:

@@ -1,0 +1,39 @@
+# OS / editor noise
+.DS_Store
+
+# Python cache / packaging
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.venv/
+
+# Local top-level scratch directories created during testing
+/confs/
+
+# Runtime artifacts from LAMMPS / APEX / dispatcher
+log.lammps
+dump.relax
+outlog
+errlog
+average_box.txt
+average_stress.txt
+result_task.json
+dpdispatcher.log
+*.sub
+*.sub.run
+*_job_id
+
+# Generated test-side symlinks / temporary inputs
+tests/confs/hcp-Ti/Ti.meam.spline
+
+# Local tutorial run outputs for the example2.2 local workflow
+examples/lammps/lammps_tutorial2_submission_methods/lammps_example2.2_local/all_result.json
+examples/lammps/lammps_tutorial2_submission_methods/lammps_example2.2_local/[0-9a-f]*/
+examples/lammps/lammps_tutorial2_submission_methods/lammps_example2.2_local/confs/std-fcc/Al.eam.alloy
+examples/lammps/lammps_tutorial2_submission_methods/lammps_example2.2_local/confs/std-fcc/elastic_*/
+examples/lammps/lammps_tutorial2_submission_methods/lammps_example2.2_local/confs/std-fcc/finitebulk_*/
+examples/lammps/lammps_tutorial2_submission_methods/lammps_example2.2_local/confs/std-fcc/finitetlatt_*/
+examples/lammps/lammps_tutorial2_submission_methods/lammps_example2.2_local/confs/std-fcc/finitetela_*/
+examples/lammps/lammps_tutorial2_submission_methods/lammps_example2.2_local/confs/std-fcc/relaxation/

@@ -324,6 +324,62 @@ class FiniteTlattReport(PropertyReport):
         return build_table(df), df
 
 
+class FiniteBulkReport(PropertyReport):
+    """Report bulk modulus and equilibrium pressure as a function of temperature."""
+
+    @staticmethod
+    def _sorted_rows(res_data):
+        sorted_vals = sorted(res_data.values(), key=lambda v: float(v["temperature"]))
+        temps = [float(v["temperature"]) for v in sorted_vals]
+        bulk = [float(v["B"]) for v in sorted_vals]
+        pressure = [float(v["equilibrium_pressure"]) for v in sorted_vals]
+        return temps, bulk, pressure
+
+    @staticmethod
+    def plotly_graph(res_data: dict, name: str, **kwargs):
+        temps, bulk, pressure = FiniteBulkReport._sorted_rows(res_data)
+
+        traces = [
+            go.Scatter(x=temps, y=bulk, mode="lines+markers", name="B"),
+            go.Scatter(
+                x=temps,
+                y=pressure,
+                mode="lines+markers",
+                name="P(eq)",
+                yaxis="y2",
+            ),
+        ]
+
+        layout = go.Layout(
+            title="Finite Temperature Bulk Modulus",
+            xaxis=dict(title="Temperature (K)"),
+            yaxis=dict(title="Bulk modulus B (GPa)"),
+            yaxis2=dict(
+                title="Equilibrium pressure (GPa)",
+                overlaying="y",
+                side="right",
+            ),
+            showlegend=True,
+        )
+        return traces, layout
+
+    @staticmethod
+    def dash_table(res_data: dict, decimal: int = 3, **kwargs) -> dash_table.DataTable:
+        sorted_vals = sorted(res_data.values(), key=lambda v: float(v["temperature"]))
+        df = pd.DataFrame(
+            {
+                "Temperature (K)": round_format(
+                    [float(v["temperature"]) for v in sorted_vals], decimal
+                ),
+                "B (GPa)": round_format([float(v["B"]) for v in sorted_vals], decimal),
+                "P(eq) (GPa)": round_format(
+                    [float(v["equilibrium_pressure"]) for v in sorted_vals], decimal
+                ),
+            }
+        )
+        return build_table(df), df
+
+
 class FiniteTelaReport(PropertyReport):
     """Report elastic constants and moduli as a function of temperature."""
 
